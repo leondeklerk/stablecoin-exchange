@@ -68,7 +68,15 @@ class APIEndpoint(BaseEndpoint):
             web.get(  '/exchange/t2e/rate',    self.exchange_rate_token_to_euro),
             #"get payment status"
             web.get(  '/exchange/status',     self.exchange_status),
+            # get gateway information
+            web.get('/gateway/info', self.gateway_info)
         ])
+
+    # Get the gateway information
+    def gateway_info(self, request):
+        response = self.stablecoin_interactor.get_gateway_info()
+        response["name"] = self.stablecoin_interactor.name
+        return web.json_response(response)   
 
     # async def tikkie_callback(self, request):
     #     print(await request.json())

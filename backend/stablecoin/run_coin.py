@@ -18,14 +18,20 @@ from pyipv8.ipv8_service import IPv8
 
 from binascii import hexlify, unhexlify
 from base64 import b64encode
+from dotenv import load_dotenv
 
 import os
 
+load_dotenv()
+
 GATEWAY_NAME     =       os.environ.get('GATEWAY_NAME',     "Demo Gateway").strip()
-GATEWAY_HOSTNAME =       os.environ.get('GATEWAY_HOSTNAME', "develop.euro-token.nl").strip()
+GATEWAY_HOSTNAME =       os.environ.get('GATEWAY_HOSTNAME', "localhost").strip()
 GATEWAY_IP       =       os.environ.get('GATEWAY_IP',       "0.0.0.0").strip()
 RATE_E2T         = float(os.environ.get('RATE_E2T',         1.00))
 RATE_T2E         = float(os.environ.get('RATE_T2E',         1.00))
+TIKKIE_API_KEY   = os.environ.get('TIKKIE_API_KEY', "").strip()
+TIKKIE_SANDBOX_TOKEN   = os.environ.get('TIKKIE_SANDBOX_TOKEN', "").strip()
+TIKKIE_PRODUCTION_TOKEN   = os.environ.get('TIKKIE_PRODUCTION_TOKEN', "").strip()
 
 DOCKER = bool(int(os.environ.get('DOCKER', 0)))
 
@@ -45,11 +51,11 @@ async def start_communities():
     configuration['keys'] = [{
         'alias': "my peer",
         'generation': u"curve25519",
-        'file': (f"/vol/keys/trustchain/ec.pem" if DOCKER else resolve_user("~/.ssh/eurotoken/trustchain/ec.pem"))
+        'file': (f"/.keys/trustchain_key.pem")
         }]
     configuration['address'] = ip_address
     configuration['logger'] = {
-            'level': "INFO",
+            'level': "DEBUG",
             }
     configuration['overlays'] = [{
         'class': 'MyTrustChainCommunity',
@@ -62,7 +68,7 @@ async def start_communities():
                 }
             }],
         'initialize': {
-            'working_directory': (f'/vol/database'if DOCKER else f'.local')
+            'working_directory': (f'/.local')
             },
         'on_start': [('started', )]
         }, {
@@ -87,20 +93,14 @@ async def start_communities():
     await rest_manager.start(ip_address, rest_port)
 
 def buildSI(ipv8, address, ipv8_port):
-    prefix = ('/vol/keys/' if DOCKER else resolve_user('~/.ssh/eurotoken/'))
     bank = Tikkie(
             production=False,
-
-            # abn_api_path='/vol/keys/tikkie/abn_stablecoin_key',
-            # sandbox_key_path='/vol/keys/tikkie/tikkie_key_sandbox',
-            # production_key_path='/vol/keys/tikkie/tikkie_key_prod',
-
-            abn_api_path=f'{prefix}/tikkie/abn_stablecoin_key',
-            sandbox_key_path=f'{prefix}/tikkie/tikkie_key_sandbox',
-            production_key_path=f'{prefix}/tikkie/tikkie_key_prod',
-
-            global_url="http://bagn.blokzijl.family",
-            url="/api/exchange/e2t/tikkie_callback")
+            api_key = TIKKIE_API_KEY,
+            sandbox_token = TIKKIE_SANDBOX_TOKEN,
+            production_token = TIKKIE_PRODUCTION_TOKEN,
+            hostname=f"{GATEWAY_HOSTNAME}",
+            url="/api/exchange/e2t/tikkie_callback"
+    )
 
     blockchain  = TrustChain(identity="pubkey0123456789abcdef", ipv8=ipv8, address=(address, ipv8_port) )
     persistence = InMemoryPersistence()

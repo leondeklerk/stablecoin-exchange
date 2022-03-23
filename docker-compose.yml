@@ -9,23 +9,19 @@ services:
     ports:
       - "8090:8090/udp"
     volumes:
-      # - /opt/eurotoken/database:/vol/database
-      - ./backend/.local:/vol/database
-      - ~/.ssh/eurotoken:/vol/keys
+      - ./backend/.local:/.local
+      - ./backend/.keys:/.keys
+    env_file:
+      - .env
     environment:
-      - DOCKER=           1
-      - GATEWAY_NAME=     Demo Gateway
-      - GATEWAY_HOSTNAME= gateway.euro-token.nl
-      - GATEWAY_IP=       0.0.0.0
-      - RATE_E2T=         1.00
-      - RATE_T2E=         1.00
+      - DOCKER=1
 
   proxy:
     restart: always
     build:
       context: ./frontend
     ports:
-      - "8080:8080"
+      - "8080:80"
     depends_on:
       - app
 

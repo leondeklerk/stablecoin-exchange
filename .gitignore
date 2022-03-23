@@ -1,6 +1,7 @@
 __pycache__/
 .vim/
-backend/.local
+backend/.local/*
+backend/.keys/*
 backend/stablecoin/htmlcov
 backend/stablecoin/.coverage
 backend/.coverage
@@ -18,3 +19,4 @@ frontend/.*.dockerfile
 frontend/.vs
 Pipfile.lock
 Pipfile
+.env

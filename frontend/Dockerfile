@@ -1,12 +1,14 @@
-FROM nginxinc/nginx-unprivileged:1-alpine
+# build stage
+FROM node:lts-alpine as build-stage
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
 
+# production stage
+FROM nginx:stable-alpine as production-stage
 COPY ./default.conf /etc/nginx/conf.d/default.conf
+COPY --from=build-stage /app/dist /usr/share/nginx/html
 
-USER root
-
-RUN mkdir -p /vol/static
-COPY ./dist /vol/static
-RUN chmod -R 755 /vol/static
-
-USER nginx
 

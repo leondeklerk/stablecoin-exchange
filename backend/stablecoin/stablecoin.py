@@ -239,6 +239,9 @@ class StablecoinInteractor:
         # return math.floor(token_amount_cent * 0.99)
         return math.floor(token_amount_cent * self.rateT2E)
 
+    def get_gateway_info(self):
+        return self.blockchain.get_connection_info()
+
     class VerificationError(Exception):
         pass
 
